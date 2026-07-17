@@ -145,7 +145,9 @@ let alerts = [
 ];
 
 // Persistent Database Layer
-const DB_PATH = path.join(process.cwd(), "server_db.json");
+const DB_PATH = process.env.NETLIFY
+  ? path.join("/tmp", "server_db.json")
+  : path.join(process.cwd(), "server_db.json");
 
 function loadDb() {
   if (fs.existsSync(DB_PATH)) {
@@ -1259,7 +1261,7 @@ async function setupVite() {
       appType: "spa",
     });
     app.use(vite.middlewares);
-  } else {
+  } else if (!process.env.NETLIFY) {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {

@@ -38,7 +38,40 @@ import {
 
 export default function App() {
   const [lang, setLang] = useState<Language>("fr"); // Default to French, extremely common for Moroccan administration
-  const [activeTab, setActiveTab] = useState<"home" | "dashboard" | "weather" | "irrigation" | "disease" | "market" | "admin" | "faq">("home");
+  const [activeTab, setActiveTab] = useState<"home" | "dashboard" | "weather" | "irrigation" | "disease" | "market" | "admin" | "faq">(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname.replace(/^\//, "").toLowerCase();
+      const validTabs = ["home", "dashboard", "weather", "irrigation", "disease", "market", "admin", "faq"];
+      if (validTabs.includes(path)) {
+        return path as any;
+      }
+    }
+    return "home";
+  });
+
+  // Keep browser URL pathname synchronized with the activeTab state
+  useEffect(() => {
+    const currentPath = window.location.pathname.replace(/^\//, "").toLowerCase();
+    const targetPath = activeTab === "home" ? "" : activeTab;
+    if (currentPath !== targetPath) {
+      window.history.pushState(null, "", activeTab === "home" ? "/" : `/${activeTab}`);
+    }
+  }, [activeTab]);
+
+  // Handle browser back and forward button clicks
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.replace(/^\//, "").toLowerCase();
+      const validTabs = ["home", "dashboard", "weather", "irrigation", "disease", "market", "admin", "faq"];
+      if (validTabs.includes(path)) {
+        setActiveTab(path as any);
+      } else if (path === "") {
+        setActiveTab("home");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
   
   // App States
   const [user, setUser] = useState<User | null>(null);

@@ -36,6 +36,26 @@ import {
   EyeOff
 } from "lucide-react";
 
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      return null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {}
+  },
+  removeItem: (key: string): void => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {}
+  }
+};
+
 export default function App() {
   const [lang, setLang] = useState<Language>("fr"); // Default to French, extremely common for Moroccan administration
   const [activeTab, setActiveTab] = useState<"home" | "dashboard" | "weather" | "irrigation" | "disease" | "market" | "admin" | "faq">(() => {
@@ -88,8 +108,8 @@ export default function App() {
   
   
   // Modals Inputs state
-  const [authEmail, setAuthEmail] = useState(() => localStorage.getItem("agr_remember_email") || "");
-  const [authPassword, setAuthPassword] = useState(() => localStorage.getItem("agr_remember_password") || "");
+  const [authEmail, setAuthEmail] = useState(() => safeLocalStorage.getItem("agr_remember_email") || "");
+  const [authPassword, setAuthPassword] = useState(() => safeLocalStorage.getItem("agr_remember_password") || "");
   const [authName, setAuthName] = useState("");
   const [authIsRegister, setAuthIsRegister] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -216,8 +236,8 @@ export default function App() {
 
   useEffect(() => {
     // 1. Prefill credentials if Remember Me is checked
-    const savedEmail = localStorage.getItem("agr_remember_email");
-    const savedPassword = localStorage.getItem("agr_remember_password");
+    const savedEmail = safeLocalStorage.getItem("agr_remember_email");
+    const savedPassword = safeLocalStorage.getItem("agr_remember_password");
     if (savedEmail && savedPassword) {
       setAuthEmail(savedEmail);
       setAuthPassword(savedPassword);
@@ -226,8 +246,8 @@ export default function App() {
     }
 
     // 2. Load persistent logged-in session
-    const storedUser = localStorage.getItem("agri_user");
-    const loggedOut = localStorage.getItem("is_logged_out");
+    const storedUser = safeLocalStorage.getItem("agri_user");
+    const loggedOut = safeLocalStorage.getItem("is_logged_out");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else if (loggedOut === "true") {
@@ -368,20 +388,20 @@ export default function App() {
 
       if (data.user) {
         setUser(data.user);
-        localStorage.setItem("agri_user", JSON.stringify(data.user));
-        localStorage.removeItem("is_logged_out");
+        safeLocalStorage.setItem("agri_user", JSON.stringify(data.user));
+        safeLocalStorage.removeItem("is_logged_out");
         
         if (rememberMe) {
-          localStorage.setItem("agr_remember_email", authEmail);
-          localStorage.setItem("agr_remember_password", authPassword);
+          safeLocalStorage.setItem("agr_remember_email", authEmail);
+          safeLocalStorage.setItem("agr_remember_password", authPassword);
         } else {
-          localStorage.removeItem("agr_remember_email");
-          localStorage.removeItem("agr_remember_password");
+          safeLocalStorage.removeItem("agr_remember_email");
+          safeLocalStorage.removeItem("agr_remember_password");
         }
         
         setShowAuthModal(false);
         setAuthError(null);
-        setActiveTab("dashboard");
+        setActiveTab((prev) => prev === "home" ? "dashboard" : prev);
       }
     } catch (err: any) {
       // Offline fallback
@@ -395,20 +415,20 @@ export default function App() {
            phone: "+212 600-000000"
          };
          setUser(offlineUser);
-         localStorage.setItem("agri_user", JSON.stringify(offlineUser));
-         localStorage.removeItem("is_logged_out");
+         safeLocalStorage.setItem("agri_user", JSON.stringify(offlineUser));
+         safeLocalStorage.removeItem("is_logged_out");
          
          if (rememberMe) {
-           localStorage.setItem("agr_remember_email", authEmail);
-           localStorage.setItem("agr_remember_password", authPassword);
+           safeLocalStorage.setItem("agr_remember_email", authEmail);
+           safeLocalStorage.setItem("agr_remember_password", authPassword);
          } else {
-           localStorage.removeItem("agr_remember_email");
-           localStorage.removeItem("agr_remember_password");
+           safeLocalStorage.removeItem("agr_remember_email");
+           safeLocalStorage.removeItem("agr_remember_password");
          }
          
          setShowAuthModal(false);
          setAuthError(null);
-         setActiveTab("dashboard");
+         setActiveTab((prev) => prev === "home" ? "dashboard" : prev);
          return;
       }
       console.warn("Auth action failed:", err);
@@ -501,9 +521,9 @@ export default function App() {
               : "✓ Your password has been successfully reset! You can now log in safely."
           );
           
-          const savedEmail = localStorage.getItem("agr_remember_email");
+          const savedEmail = safeLocalStorage.getItem("agr_remember_email");
           if (savedEmail && savedEmail.toLowerCase() === forgotEmail.toLowerCase()) {
-            localStorage.setItem("agr_remember_password", newPasswordForReset);
+            safeLocalStorage.setItem("agr_remember_password", newPasswordForReset);
             setAuthPassword(newPasswordForReset);
           }
           setAuthEmail(forgotEmail);
@@ -649,8 +669,8 @@ export default function App() {
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem("agri_user");
-    localStorage.setItem("is_logged_out", "true");
+    safeLocalStorage.removeItem("agri_user");
+    safeLocalStorage.setItem("is_logged_out", "true");
     setActiveTab("home");
   };
 

@@ -1,0 +1,6 @@
+{
+  "name": "Agrisma",
+  "description": "AI-powered smart agriculture platform designed for Moroccan farmers, providing weather forecasts, smart irrigation alerts, AI-driven crop disease analysis, and market price predictions.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -14,9 +14,18 @@ app.use(express.json({ limit: '10mb' }));
 
 // Netlify path rewriter middleware
 app.use((req, res, next) => {
+  // 1. If it starts with the netlify function path, rewrite it to /api
   if (req.url.startsWith('/.netlify/functions/api')) {
     req.url = req.url.replace('/.netlify/functions/api', '/api');
   }
+  
+  // 2. If running under Netlify/serverless environments and the path was stripped (e.g. is just /farms instead of /api/farms)
+  // we prepend '/api' to ensure the Express router matches it.
+  if (!req.url.startsWith('/api') && !req.url.startsWith('/.netlify')) {
+    const cleanUrl = req.url.startsWith('/') ? req.url : '/' + req.url;
+    req.url = '/api' + cleanUrl;
+  }
+  
   next();
 });
 

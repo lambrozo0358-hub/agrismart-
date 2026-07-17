@@ -40,7 +40,7 @@ export default function App() {
   const [lang, setLang] = useState<Language>("fr"); // Default to French, extremely common for Moroccan administration
   const [activeTab, setActiveTab] = useState<"home" | "dashboard" | "weather" | "irrigation" | "disease" | "market" | "admin" | "faq">(() => {
     if (typeof window !== "undefined") {
-      const path = window.location.pathname.replace(/^\//, "").toLowerCase();
+      const path = window.location.pathname.replace(/^\/|\/$/g, "").toLowerCase();
       const validTabs = ["home", "dashboard", "weather", "irrigation", "disease", "market", "admin", "faq"];
       if (validTabs.includes(path)) {
         return path as any;
@@ -51,7 +51,7 @@ export default function App() {
 
   // Keep browser URL pathname synchronized with the activeTab state
   useEffect(() => {
-    const currentPath = window.location.pathname.replace(/^\//, "").toLowerCase();
+    const currentPath = window.location.pathname.replace(/^\/|\/$/g, "").toLowerCase();
     const targetPath = activeTab === "home" ? "" : activeTab;
     if (currentPath !== targetPath) {
       window.history.pushState(null, "", activeTab === "home" ? "/" : `/${activeTab}`);
@@ -61,7 +61,7 @@ export default function App() {
   // Handle browser back and forward button clicks
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname.replace(/^\//, "").toLowerCase();
+      const path = window.location.pathname.replace(/^\/|\/$/g, "").toLowerCase();
       const validTabs = ["home", "dashboard", "weather", "irrigation", "disease", "market", "admin", "faq"];
       if (validTabs.includes(path)) {
         setActiveTab(path as any);
